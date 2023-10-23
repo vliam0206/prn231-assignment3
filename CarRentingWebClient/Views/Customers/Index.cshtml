@@ -1,0 +1,71 @@
+﻿@model IEnumerable<BusinessObjects.Customer>
+
+@{
+    ViewData["Title"] = "Customers Page";
+}
+
+<h1>Customer Management</h1>
+<hr />
+@*Search*@
+<div class="row">
+    <form method="get" asp-controller="Customers" asp-action="Search" class="col-10">
+        <input class="me-2 col-6" type="text" placeholder="Search" name="searchValue" value="@ViewBag.SearchValue" />
+        <input type="submit" value="Search" class="btn btn-dark btn-outline-light me-4" /> |
+        <a asp-action="Index" class="ms-4">Back to full list</a>
+    </form>
+</div>
+
+<br />
+@*End search*@
+<p>
+    <a asp-action="Create" class="btn btn-secondary">Create New</a>
+</p>
+<table class="table" id="customer-table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Telephone)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerBirthday)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerStatus)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CustomerName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Telephone)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CustomerBirthday)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CustomerStatus)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.CustomerId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.CustomerId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.CustomerId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

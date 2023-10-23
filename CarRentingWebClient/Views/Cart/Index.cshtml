@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Order Page";
+}
+@model IEnumerable<CartItem>
+
+<h1 class="text-success"> Cart Information </h1>
+<p class="text-danger">@ViewData["ErrorMessage"]</p>
+<p class="text-success">@ViewData["Message"]</p>
+
+@if (ViewData["userId"] != null && !ViewData["userId"].Equals("-1"))
+{
+    <a asp-controller="User" asp-action="Renting" class="btn btn-secondary btn-outline-light">Add New Renting</a>
+}
+else
+{
+    <a asp-controller="Admin" asp-action="Renting" class="btn btn-secondary btn-outline-light">Add New Renting</a>
+}
+
+@{ if (Model.Count() > 0)
+    {
+        int index = 0;
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CarInfo.CarName)
+                    </th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CarInfo.CarRentingPricePerDay)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    foreach (var rentingDate in item.RentingDateInfo.Values)
+                    {
+                        <tr>
+                            <td> @(++index) </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CarInfo.CarName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => rentingDate.StartDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => rentingDate.EndDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CarInfo.CarRentingPricePerDay)
+                            </td>
+                            <td>
+                                <a asp-action="RemoveFromCart" asp-route-carId="@item.CarInfo.CarId"
+                                   class="btn btn-danger btn-outline-light"> Remove </a>
+                            </td>
+                        </tr>
+                    }
+
+                }
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            @if (ViewData["userId"] != null && !ViewData["userId"].Equals("-1"))
+            {
+                <a asp-action="UserCheckoutView" class="btn btn-success btn-outline-light"> Check out </a>
+            }
+            else
+            {
+                <a asp-action="AdminCheckoutView" class="btn btn-success btn-outline-light"> Check out </a>
+            }
+
+        </div>
+    }
+    else
+    {
+        <hr />
+        <p class="text-danger"> Cart is emty.</p>
+    }
+}

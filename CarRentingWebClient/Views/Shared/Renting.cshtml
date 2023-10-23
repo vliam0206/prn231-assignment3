@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Renting Page";
+}
+@model RentingDate
+
+<h1 class="text-success"> Renting Car </h1>
+
+<div class="text-danger">@ViewData["Message"]</div>
+<div class="col-8">
+    <form method="get" action="CarList">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th> From Date </th>
+                    <th> To Date </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>
+                        <input asp-for="StartDate" type="date" />
+                    </th>
+                    <th>
+                        <input asp-for="EndDate" type="date" />
+                    </th>
+                    <th>
+                        <input type="submit" value="Next" />
+                    </th>
+            </tbody>
+        </table>
+    </form>
+</div>

@@ -1,0 +1,73 @@
+﻿@model IEnumerable<BusinessObjects.RentingTransaction>
+
+@{
+    ViewData["Title"] = "Transaction History";
+}
+
+<h1>Transaction History</h1>
+@{ bool isAdmin = false;
+    if (ViewData["userid"] != null && ViewData["userid"]!.Equals("-1"))
+    {
+        isAdmin = true;
+    }
+}
+<input type="hidden" name="customerId" id="customerId" value="@ViewData["userid"]"/>
+
+@if (isAdmin)
+{
+    <p>
+        <a asp-controller="Admin" asp-action="Renting" class="btn btn-secondary">Make New Transaction</a>
+    </p>
+}
+else
+{
+    <p>
+        <a asp-controller="User" asp-action="Renting" class="btn btn-secondary">Make New Transaction</a>
+    </p>
+}
+<table class="table" id="transaction-table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.RentingDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TotalPrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RentingStatus)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RentingDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Customer.CustomerName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TotalPrice)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RentingStatus)
+                </td>
+                <td>
+                    <a asp-action="TransactionDetails" asp-route-transactionId="@item.RentingTransationId">Details</a>
+                    @if (isAdmin)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.RentingTransationId">| Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.RentingTransationId">| Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

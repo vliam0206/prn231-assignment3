@@ -1,0 +1,100 @@
+﻿@model IEnumerable<CartItem>
+
+@{
+    ViewData["Title"] = "Create";
+    bool isAdmin = false;
+}
+@if (ViewBag.UserId != null && ViewBag.UserId == "-1")
+{
+    isAdmin = true;
+}
+
+<h1 class="text-success">Order Information</h1>
+
+<div>
+    <a asp-action="Index">Back</a>
+</div>
+
+@if (Model != null && Model.Count() > 0)
+{
+    <form asp-action="Checkout" method="post">
+        @if (isAdmin)
+        {
+            <div class="text-end">
+                <span class="me-2 fw-bold"> Choose Customer Name: </span>
+                <select name="userId" asp-items="ViewBag.CustomerId"></select>
+            </div>
+        }
+        else
+        {
+            <div class="text-end">
+                <span class="me-2 fw-bold"> Customer Name: </span>
+                <span> @ViewBag.username </span>
+            </div>
+            <input type="hidden" name="userId" value="@ViewBag.UserId" />
+        }
+        @{int index = 0; }
+        <hr />
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CarInfo.CarName)
+                    </th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.CarInfo.CarRentingPricePerDay)
+                    </th>
+                    <th> Renting Dates </th>
+                    <th> Cost </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    foreach (var rentingDate in item.RentingDateInfo.Values)
+                    {
+                        <tr>
+                            <td> @(++index) </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CarInfo.CarName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => rentingDate.StartDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => rentingDate.EndDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CarInfo.CarRentingPricePerDay)
+                            </td>
+                            <td>
+                                @{ var dates = (rentingDate.EndDate - rentingDate.StartDate).TotalDays + 1;}
+                                @dates
+                            </td>
+                            <td> @(decimal.Parse(dates.ToString()) * item.CarInfo.CarRentingPricePerDay.Value) </td>
+                        </tr>
+                    }
+
+                }
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            <p class="fw-bold">Total: @ViewData["total"]</p>
+            <input type="submit" value="Check out" class="btn btn-success col-12" />
+        </div>
+    </form>
+}
+else if (ViewData["Message"] != null)
+{
+    <hr />
+    <p class="text-success">@ViewData["Message"]</p>
+}
+else
+{
+    <hr />
+    <p class="text-danger"> Cart is empty. </p>
+}

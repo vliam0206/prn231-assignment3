@@ -1,0 +1,108 @@
+﻿@model IEnumerable<BusinessObjects.RentingDetail>
+
+@{
+    ViewData["Title"] = "Transaction Details";
+}
+@{ bool isAdmin = false;
+    if (ViewData["userid"] != null && ViewData["userid"].Equals("-1"))
+    {
+        isAdmin = true;
+    }
+}
+<h1>Transaction Details</h1>
+<br />
+@if (Model.Count() > 0)
+{
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RentingTransaction.RentingTransationId)
+        </dt>
+        <dd class="col-sm-4">
+            @Html.DisplayFor(model => model.FirstOrDefault()!.RentingTransaction.RentingTransationId)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RentingTransaction.RentingDate)
+        </dt>
+        <dd class="col-sm-4">
+            @Html.DisplayFor(model => model.FirstOrDefault()!.RentingTransaction.RentingDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RentingTransaction.Customer)
+        </dt>
+        <dd class="col-sm-4">
+            @Html.DisplayFor(model => model.FirstOrDefault()!.RentingTransaction.Customer.CustomerName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RentingTransaction.RentingStatus)
+        </dt>
+        <dd class="col-sm-4">
+            @Html.DisplayFor(model => model.FirstOrDefault()!.RentingTransaction.RentingStatus)
+        </dd>
+    </dl>
+    @if (isAdmin)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.FirstOrDefault()!.RentingTransaction.RentingTransationId"
+           class="btn btn-secondary btn-outline-light"> Edit Transaction </a>
+    }
+
+    <hr />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th> No. </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Car)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.StartDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EndDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Price)
+                </th>
+                <th> Renting Dates </th>
+                <th> Cost </th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int i = 0;}
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(++i)</td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Car.CarName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Price)
+                    </td>
+                    <td>
+                        @{ var dates = (item.EndDate - item.StartDate).TotalDays + 1;}
+                        @dates
+                    </td>
+                    <td> @(decimal.Parse(dates.ToString()) * item.Car.CarRentingPricePerDay!.Value) </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="text-end">
+        <p class="fw-bold">Total: @Model.FirstOrDefault()!.RentingTransaction.TotalPrice</p>
+    </div>
+}
+else
+{
+<p class="text-danger">There is no data.</p>
+}
+
+<div>
+    <a asp-action="TransactionHistory">Back</a>
+</div>
