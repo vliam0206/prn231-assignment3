@@ -7,7 +7,6 @@ namespace CarRentingWebClient.AccessAPIs.Interfaces;
 public interface ICarInformationAPIs
 {
     public Task<List<CarInformation>> GetCarInformationsAsync();
-    public Task<List<CarInformation>> GetValidCarInformationsAsync();
     public Task<List<CarInformation>> SearchCarsAsync(string keyword);
     public Task<List<CarInformation>> GetAvailableCarsAsync(RentingDate rentingDate);
     public Task<CarInformation?> GetCarInformationAsync(int id);

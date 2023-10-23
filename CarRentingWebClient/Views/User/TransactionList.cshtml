@@ -6,12 +6,11 @@
 
 <h1>Transaction History</h1>
 @{ bool isAdmin = false;
-    if (ViewData["userid"] != null && ViewData["userid"]!.Equals("-1"))
+    if (ViewData["userid"] != null && ViewData["userid"].Equals("-1"))
     {
         isAdmin = true;
     }
 }
-<input type="hidden" name="customerId" id="customerId" value="@ViewData["userid"]"/>
 
 @if (isAdmin)
 {
@@ -25,7 +24,7 @@ else
         <a asp-controller="User" asp-action="Renting" class="btn btn-secondary">Make New Transaction</a>
     </p>
 }
-<table class="table" id="transaction-table">
+<table class="table">
     <thead>
         <tr>
             <th>

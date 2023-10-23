@@ -92,15 +92,6 @@ public class CarInformationAPIs : ICarInformationAPIs
         return CarInformations!;
     }
 
-    public async Task<List<CarInformation>> GetValidCarInformationsAsync()
-    {
-        // Get Response return
-        HttpResponseMessage response = await _client.GetAsync(_carApiUrl+"valid");
-        string strData = await response.Content.ReadAsStringAsync();
-        var CarInformations = JsonSerializer.Deserialize<List<CarInformation>>(strData, options);
-        return CarInformations!;
-    }
-
     public async Task<List<CarInformation>> SearchCarsAsync(string keyword)
     {
         // Get Response return

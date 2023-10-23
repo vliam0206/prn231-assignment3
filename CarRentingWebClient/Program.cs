@@ -1,5 +1,4 @@
 using BusinessObjects.AutoMapper;
-using CarRentingWebClient;
 using CarRentingWebClient.AccessAPIs;
 using CarRentingWebClient.AccessAPIs.Interfaces;
 using CarRentingWebClient.AutoMapper;
@@ -41,9 +40,6 @@ builder.Services.AddAuthentication(
         opt.AccessDeniedPath = "/Home/AccessDenied";
     });
 
-// Add SignlR
-builder.Services.AddSignalR();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -64,7 +60,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
-// use signalR
-app.MapHub<HubServer>("/hubServer");
 
 app.Run();

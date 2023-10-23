@@ -7,7 +7,6 @@ using AutoMapper;
 using CarRentingWebClient.Models;
 using BusinessObjects;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.SignalR;
 
 namespace CarRentingWebClient.Controllers;
 
@@ -17,24 +16,22 @@ public class CustomersController : Controller
 {
     private readonly ICustomerAPIs _customerAPIs;
     private readonly IMapper _mapper;
-    private readonly IHubContext<HubServer> _signalRHub;
 
-    public CustomersController(ICustomerAPIs customerAPIs, IMapper mapper,
-        IHubContext<HubServer> signalRhub)
+    public CustomersController(ICustomerAPIs customerAPIs, IMapper mapper)
     {
         _customerAPIs = customerAPIs;
         _mapper = mapper;
-        _signalRHub = signalRhub;
     }
 
     [TempData]
     public string? Message { get; set; }
 
     // GET: Admin/Customers
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
         ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
-        return View(await _customerAPIs.GetCustomersAsync());
+        //return View(await _customerAPIs.GetCustomersAsync());
+        return View();
     }
 
     // GET: Admin/Customers/Details/5
@@ -73,7 +70,6 @@ public class CustomersController : Controller
             try
             {
                 await _customerAPIs.CreateCustomerAsync(customer);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CUSTOMERS);
                 return RedirectToAction(nameof(Index));
             } catch (Exception ex)
             {
@@ -117,7 +113,6 @@ public class CustomersController : Controller
             try
             {
                 await _customerAPIs.UpdateCustomerAsync(id, customer);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CUSTOMERS);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -159,7 +154,6 @@ public class CustomersController : Controller
             try
             {
                 await _customerAPIs.DeleteCustomerAsync(id);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CUSTOMERS);
             } catch (Exception ex)
             {
                 Message = ex.Message;

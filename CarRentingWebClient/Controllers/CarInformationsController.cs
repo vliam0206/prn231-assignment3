@@ -7,7 +7,6 @@ using AutoMapper;
 using BusinessObjects.DTOs;
 using BusinessObjects;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.SignalR;
 
 namespace CarRentingWebClient.Controllers;
 
@@ -19,19 +18,16 @@ public class CarInformationsController : Controller
     private readonly IManufacturerAPIs _manufacturerAPIs;
     private readonly ISupplierAPIs _supplierAPIs;
     private readonly IMapper _mapper;
-    private readonly IHubContext<HubServer> _signalRHub;
 
     public CarInformationsController(ICarInformationAPIs carAPIs,
                                            IManufacturerAPIs manufacturerAPIs,
                                            ISupplierAPIs supplierAPIs,
-                                           IMapper mapper,
-                                           IHubContext<HubServer> signalRHub)
+                                           IMapper mapper)
     {
         _carAPIs = carAPIs;
         _manufacturerAPIs = manufacturerAPIs;
         _supplierAPIs = supplierAPIs;
         _mapper = mapper;
-        _signalRHub = signalRHub;
     }
 
     [TempData]
@@ -42,8 +38,12 @@ public class CarInformationsController : Controller
     {
         ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
         var carList = await _carAPIs.GetCarInformationsAsync();
-        ViewData["Message"] = Message;
-        return View(carList);
+        var manufacturers = await _manufacturerAPIs.GetManufacturersAsync();
+        var suppliers = await _supplierAPIs.GetSuppliersAsync();
+        ViewData["ManufacturerId"] = new SelectList(manufacturers, "ManufacturerId", "ManufacturerName");
+        ViewData["SupplierId"] = new SelectList(suppliers, "SupplierId", "SupplierName");
+        //return View(carList);
+        return View();
     }
 
     // GET: CarInformations/Details/5
@@ -87,7 +87,6 @@ public class CarInformationsController : Controller
             try
             {
                 await _carAPIs.CreateCarInformationAsync(carInformation);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CARS);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -140,7 +139,6 @@ public class CarInformationsController : Controller
             try
             {
                 await _carAPIs.UpdateCarInformationAsync(id, carInformation);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CARS);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -186,20 +184,11 @@ public class CarInformationsController : Controller
         {
             try
             {
-                await _carAPIs.DeleteCarInformationAsync(id);      
-                // check if determine delete
-                var car = await _carAPIs.GetCarInformationAsync(id);
-                if (car != null)
-                {
-                    Message = $"Soft delete the car {car.CarName} successfully!";
-                    ViewData["Message"] = Message;
-                }
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CARS);
+                await _carAPIs.DeleteCarInformationAsync(id);                
             }
             catch (Exception ex)
             {
                 Message = ex.Message;
-                ViewData["Message"] = Message;
                 return RedirectToAction(nameof(Delete), carInformation);
             }
         }

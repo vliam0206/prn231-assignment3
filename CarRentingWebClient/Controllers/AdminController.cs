@@ -25,7 +25,7 @@ public class AdminController : Controller
     [TempData]
     public string? Message { get; set; }
 
-    // Get: Admin/Renting/
+    // Get: Admin/Renting
     public IActionResult Renting()
     {
         ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
@@ -39,7 +39,7 @@ public class AdminController : Controller
         var startDate = rentingDate.StartDate;
         var endDate = rentingDate.EndDate;
 
-        if (startDate < DateTime.Today || endDate < DateTime.Today || startDate > endDate)
+        if (startDate < DateTime.Now || endDate < DateTime.Now || startDate > endDate)
         {
             Message = "Invalid date! \n Valid date must be: Now < StartDate < EndDate";
             return RedirectToAction("Renting");
@@ -49,5 +49,5 @@ public class AdminController : Controller
         ViewData["enddate"] = endDate;
         var availableCars = await _carAPIs.GetAvailableCarsAsync(rentingDate);
         return View("CarList", availableCars);
-    }
+    } 
 }

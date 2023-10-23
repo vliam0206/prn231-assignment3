@@ -6,10 +6,9 @@
 <h1 class="text-success"> Renting Car </h1>
 <p class="text-secondary"> Renting from @ViewData["startdate"] to @ViewData["enddate"].</p>
 <a asp-action="Renting" class="btn btn-secondary">Choose other date</a>
-<input id="startdate" name="startdate" type="hidden" value="@ViewData["startdate"]"/>
-<input id="enddate" name="enddate" type="hidden" value="@ViewData["enddate"]"/>
 
-<table class="table" id="renting-car-table">
+
+<table class="table">
     <thead>
         <tr>
             <th>
@@ -41,7 +40,7 @@
             </th>
             <th></th>
         </tr>
-    </thead>    
+    </thead>
     <tbody>
         @foreach (var item in Model)
         {
@@ -74,7 +73,7 @@
                     @Html.DisplayFor(modelItem => item.Supplier.SupplierName)
                 </td>
                 <td>
-                    <a asp-controller="Cart" asp-action="Renting" asp-route-carId="@item.CarId"
+                    <a asp-controller="Cart" asp-action="AddToCart" asp-route-carId="@item.CarId" 
                        asp-route-startDate="@ViewData["startdate"]"
                        asp-route-endDate="@ViewData["enddate"]"
                        class="btn btn-light btn-outline-success"> Choose </a>

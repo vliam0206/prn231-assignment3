@@ -6,6 +6,7 @@
 <h1 class="text-success"> Renting Car </h1>
 
 <div class="text-danger">@ViewData["Message"]</div>
+
 <div class="col-8">
     <form method="get" action="CarList">
         <table class="table">
@@ -25,7 +26,7 @@
                         <input asp-for="EndDate" type="date" />
                     </th>
                     <th>
-                        <input type="submit" value="Next" />
+                        <input type="submit" value="Find" />
                     </th>
             </tbody>
         </table>

@@ -5,7 +5,6 @@ using CarRentingWebClient.AccessAPIs.Interfaces;
 using CarRentingWebClient.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace CarRentingWebClient.Controllers;
@@ -18,20 +17,17 @@ public class UserController : Controller
     private readonly IRentingTransactionAPIs _transactionAPIs;
     private readonly IRentingDetailAPIs _detailAPIs;
     private readonly IMapper _mapper;
-    private readonly IHubContext<HubServer> _signalRHub;
     public UserController(ICustomerAPIs customerAPIs, 
                                 ICarInformationAPIs carAPIs,
                                 IMapper mapper, 
                                 IRentingTransactionAPIs transactionAPIs, 
-                                IRentingDetailAPIs detailAPIs,
-                                IHubContext<HubServer> signalRHub)
+                                IRentingDetailAPIs detailAPIs)
     {
         _customerAPIs = customerAPIs;
         _carAPIs = carAPIs;
         _mapper = mapper;
         _transactionAPIs = transactionAPIs;
         _detailAPIs = detailAPIs;
-        _signalRHub = signalRHub;
     }
 
     [TempData]
@@ -57,7 +53,7 @@ public class UserController : Controller
         var startDate = rentingDate.StartDate;
         var endDate = rentingDate.EndDate;
 
-        if (startDate < DateTime.Today || endDate < DateTime.Today || startDate > endDate)
+        if (startDate < DateTime.Now || endDate < DateTime.Now || startDate > endDate)
         {
             Message = "Invalid date! \n Valid date must be: Now < StartDate < EndDate";
             return RedirectToAction("Renting");
@@ -124,7 +120,6 @@ public class UserController : Controller
             try
             {
                 await _customerAPIs.UpdateCustomerAsync(int.Parse(id), customer);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CUSTOMERS);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

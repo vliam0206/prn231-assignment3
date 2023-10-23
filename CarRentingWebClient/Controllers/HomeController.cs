@@ -7,7 +7,6 @@ using System.Security.Claims;
 using AutoMapper;
 using CarRentingWebClient.AccessAPIs.Interfaces;
 using BusinessObjects.DTOs;
-using Microsoft.AspNetCore.SignalR;
 
 namespace CarRentingWebClient.Controllers;
 
@@ -16,16 +15,11 @@ public class HomeController : Controller
     private IAuthAPIs _authAPIs;
     private ICustomerAPIs _customerAPIs;
     private IMapper _mapper;
-    private readonly IHubContext<HubServer> _signalRHub;
-    public HomeController(IAuthAPIs authAPIs, 
-        ICustomerAPIs customerAPIs, 
-        IMapper mapper,
-        IHubContext<HubServer> signalRHub)
+    public HomeController(IAuthAPIs authAPIs, ICustomerAPIs customerAPIs, IMapper mapper)
     {
         _authAPIs = authAPIs;
         _customerAPIs = customerAPIs;
         _mapper = mapper;
-        _signalRHub = signalRHub;
     }
 
     [TempData]
@@ -150,7 +144,6 @@ public class HomeController : Controller
             {
                 var newCustomer = _mapper.Map<CustomerCreateDTO>(registerModel);
                 await _customerAPIs.CreateCustomerAsync(newCustomer);
-                await _signalRHub.Clients.All.SendAsync(AppConstants.LOAD_CUSTOMERS);
                 Message = "Register successfully! Please login.";
                 ViewData["Message"] = Message;
             }

@@ -95,29 +95,60 @@ public class CartController : Controller
         return View(GetCartItems());
     }
     
+    private bool CheckValidateRentingDate(SortedList<DateTime, RentingDate> sortedList, RentingDate rentingDate)
+    {
+        var startDate = rentingDate.StartDate;
+        var endDate = rentingDate.EndDate;
+        var startDate0 = sortedList.GetValueAtIndex(0).StartDate;
+        var endDateN = sortedList.GetValueAtIndex(sortedList.Count - 1).EndDate;
+        
+        if ((startDate!= startDate0 && endDate <= startDate0) || 
+                (startDate != startDate0 && startDate >= endDateN))
+        {
+            return true;
+        }
+        for (int i = 0; i < sortedList.Count - 1; i++)
+        {
+            var endDate1 = sortedList.GetValueAtIndex(i).EndDate;
+            var startDate2 = sortedList.GetValueAtIndex(i+1).StartDate;
+            if (startDate >= endDate1 && endDate <= startDate2)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Thêm sản phẩm vào cart
+    // Get: Cart/AddToCart?carId=1&startDate=...&endDate=...
     public async Task<IActionResult> AddToCart([FromQuery] int carId, DateTime startDate, DateTime endDate)
     {
 
         var carInfo = await _carAPIs.GetCarInformationAsync(carId);
         if (carInfo == null)
             return NotFound("Car does not exist.");
-        var availableCars = await _carAPIs.GetAvailableCarsAsync(new RentingDate { StartDate = startDate, EndDate = endDate });
-        var avaiable = availableCars.FirstOrDefault(x => x.CarId == carId);
-        if (avaiable == null)
-        {
-            ErrorMessage = $"Failed! There is another renting for the car {carInfo.CarName} " +
-                $"which is conflict with the renting date from {startDate} " +
-                $"to {endDate}";
-            return RedirectToAction("Index");
-        }
+
         // Xử lý đưa vào Cart
         var cart = GetCartItems();
-        var cartitem = cart.Find(x => x.CarInfo.CarId == carId);
+        var cartitem = cart.Find(x => x.CarInfo.CarId == carId);              
         if (cartitem != null)
         {
             ErrorMessage = $"Failed! You have choose the car {carInfo.CarName} for renting from {cartitem.RentingDateInfo.First().Value.StartDate} " +
                 $"to {cartitem.RentingDateInfo.First().Value.EndDate}";
-            return RedirectToAction("Index");            
+            return RedirectToAction("Index");
+            // Trong DB ko cho phép lưu 2 dòng có (transactionId,carId) trùng nhau
+            #region Comment
+            //var rentingDateList = cartitem.RentingDateInfo;
+            //// Đã tồn tại, nếu thỏa đk thuê, thêm rentingDateInfo vào list
+            //if (CheckValidateRentingDate(rentingDateList, rentingDate))
+            //{
+            //    cartitem.RentingDateInfo.Add(startDate, rentingDate);                
+            //} else
+            //{ // Ko thỏa đk
+            //    ErrorMessage = $"Failed! Cannot add renting for car {carInfo.CarName} with date from {startDate} to {endDate}. There is another renting which is duplicated dates.";                
+            //    return RedirectToAction("Index");
+            //} 
+            #endregion
         }
         else
         {  //  Thêm mới
@@ -136,9 +167,9 @@ public class CartController : Controller
         SaveCartSession(cart);
         // Update total
         var numOfDates = (endDate - startDate).TotalDays + 1;
-        AddTotal(carInfo.CarRentingPricePerDay!.Value * decimal.Parse(numOfDates.ToString()));
+        AddTotal(carInfo.CarRentingPricePerDay.Value * decimal.Parse(numOfDates.ToString()));
         // Chuyển đến trang hiện thị Cart
-        Message = "Add new renting successfully!";
+        Message = "Add new renting successfully!";        
         return RedirectToAction("Index");
     }
 
@@ -235,5 +266,5 @@ public class CartController : Controller
         Message = "Checkout successfully!";
         ViewData["Message"] = Message;
         return View("Checkout");
-    }      
+    }
 }
