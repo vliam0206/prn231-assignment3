@@ -43,4 +43,23 @@ public class AuthAPIs : IAuthAPIs
         string strData = await response.Content.ReadAsStringAsync();
         return bool.Parse(strData);
     }
+
+    public async Task<LoginResponse> LoginAsync(LoginDTO loginDTO)
+    {
+        // Serialize the product object to JSON
+        var jsonString = JsonSerializer.Serialize(loginDTO);
+
+        // Create a StringContent object with JSON data
+        var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+        // Get Response return
+        HttpResponseMessage response = await _client.PostAsync(_authApiUrl + "login", content);
+        string strData = await response.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        var responseObject = JsonSerializer.Deserialize<LoginResponse>(strData, options);
+        return responseObject!;
+    }
 }

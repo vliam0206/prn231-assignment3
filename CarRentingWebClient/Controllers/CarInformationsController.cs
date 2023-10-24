@@ -18,16 +18,19 @@ public class CarInformationsController : Controller
     private readonly IManufacturerAPIs _manufacturerAPIs;
     private readonly ISupplierAPIs _supplierAPIs;
     private readonly IMapper _mapper;
+    private readonly ISession session;
 
     public CarInformationsController(ICarInformationAPIs carAPIs,
                                            IManufacturerAPIs manufacturerAPIs,
                                            ISupplierAPIs supplierAPIs,
-                                           IMapper mapper)
+                                           IMapper mapper,
+                                           IHttpContextAccessor httpContext)
     {
         _carAPIs = carAPIs;
         _manufacturerAPIs = manufacturerAPIs;
         _supplierAPIs = supplierAPIs;
         _mapper = mapper;
+        session = httpContext.HttpContext!.Session;
     }
 
     [TempData]
@@ -37,11 +40,8 @@ public class CarInformationsController : Controller
     public async Task<IActionResult> Index()
     {
         ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
-        var carList = await _carAPIs.GetCarInformationsAsync();
-        var manufacturers = await _manufacturerAPIs.GetManufacturersAsync();
-        var suppliers = await _supplierAPIs.GetSuppliersAsync();
-        ViewData["ManufacturerId"] = new SelectList(manufacturers, "ManufacturerId", "ManufacturerName");
-        ViewData["SupplierId"] = new SelectList(suppliers, "SupplierId", "SupplierName");
+        ViewData["token"] = session.GetString("token");
+        //var carList = await _carAPIs.GetCarInformationsAsync();       
         //return View(carList);
         return View();
     }

@@ -5,11 +5,13 @@ using Repositories.Interfaces;
 using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 using BusinessObjects.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CarRentingWebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class CarInformationsController : ControllerBase
 {
     private readonly ICarRepository _carRepository;
@@ -44,6 +46,7 @@ public class CarInformationsController : ControllerBase
 
     // PUT: api/CarInformations/5    
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> PutCarInformation(int id, CarCreateDTO carModel)
     {
         if ((await _carRepository.GetCarByIdAsync(id)) == null)
@@ -79,6 +82,7 @@ public class CarInformationsController : ControllerBase
 
     // POST: api/CarInformations    
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CarInformation>> PostCarInformation(CarCreateDTO carModel)
     {
         string message = await CheckValidateCarModelAsync(carModel);
@@ -109,6 +113,7 @@ public class CarInformationsController : ControllerBase
 
     // DELETE: api/CarInformations/5
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCarInformation(int id)
     {
         var carInformation = await _carRepository.GetCarByIdAsync(id);

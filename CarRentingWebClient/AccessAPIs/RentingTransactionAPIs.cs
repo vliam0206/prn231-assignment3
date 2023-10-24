@@ -4,6 +4,7 @@ using CarRentingWebClient.AccessAPIs.Interfaces;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace CarRentingWebClient.AccessAPIs;
 
@@ -12,11 +13,15 @@ public class RentingTransactionAPIs : IRentingTransactionAPIs
     private readonly HttpClient _client;
     private readonly string _carApiUrl = "";
     private JsonSerializerOptions options;
-    public RentingTransactionAPIs()
+    public RentingTransactionAPIs(IHttpContextAccessor httpContext)
     {
         _client = new HttpClient();
         var contentType = new MediaTypeWithQualityHeaderValue("application/json");
         _client.DefaultRequestHeaders.Accept.Add(contentType);
+
+        var token = httpContext.HttpContext!.Session.GetString("token");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
         _carApiUrl = "https://localhost:7248/api/RentingTransactions/";
         options = new JsonSerializerOptions
         {

@@ -94,30 +94,6 @@ public class CartController : Controller
         ViewData["userId"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()!.Value;
         return View(GetCartItems());
     }
-    
-    private bool CheckValidateRentingDate(SortedList<DateTime, RentingDate> sortedList, RentingDate rentingDate)
-    {
-        var startDate = rentingDate.StartDate;
-        var endDate = rentingDate.EndDate;
-        var startDate0 = sortedList.GetValueAtIndex(0).StartDate;
-        var endDateN = sortedList.GetValueAtIndex(sortedList.Count - 1).EndDate;
-        
-        if ((startDate!= startDate0 && endDate <= startDate0) || 
-                (startDate != startDate0 && startDate >= endDateN))
-        {
-            return true;
-        }
-        for (int i = 0; i < sortedList.Count - 1; i++)
-        {
-            var endDate1 = sortedList.GetValueAtIndex(i).EndDate;
-            var startDate2 = sortedList.GetValueAtIndex(i+1).StartDate;
-            if (startDate >= endDate1 && endDate <= startDate2)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 
     // Thêm sản phẩm vào cart
     // Get: Cart/AddToCart?carId=1&startDate=...&endDate=...
@@ -136,19 +112,6 @@ public class CartController : Controller
             ErrorMessage = $"Failed! You have choose the car {carInfo.CarName} for renting from {cartitem.RentingDateInfo.First().Value.StartDate} " +
                 $"to {cartitem.RentingDateInfo.First().Value.EndDate}";
             return RedirectToAction("Index");
-            // Trong DB ko cho phép lưu 2 dòng có (transactionId,carId) trùng nhau
-            #region Comment
-            //var rentingDateList = cartitem.RentingDateInfo;
-            //// Đã tồn tại, nếu thỏa đk thuê, thêm rentingDateInfo vào list
-            //if (CheckValidateRentingDate(rentingDateList, rentingDate))
-            //{
-            //    cartitem.RentingDateInfo.Add(startDate, rentingDate);                
-            //} else
-            //{ // Ko thỏa đk
-            //    ErrorMessage = $"Failed! Cannot add renting for car {carInfo.CarName} with date from {startDate} to {endDate}. There is another renting which is duplicated dates.";                
-            //    return RedirectToAction("Index");
-            //} 
-            #endregion
         }
         else
         {  //  Thêm mới
@@ -186,6 +149,11 @@ public class CartController : Controller
             cart.Remove(cartitem);
             // Lưu cart vào Session
             SaveCartSession(cart);
+
+            // Update total
+            var numOfDates = (cartitem.RentingDateInfo.FirstOrDefault().Value.EndDate - cartitem.RentingDateInfo.FirstOrDefault().Value.StartDate)
+                            .TotalDays + 1;
+            SubstractTotal(carInfo.CarRentingPricePerDay!.Value * decimal.Parse(numOfDates.ToString()));
 
             Message = $"Remove car {carInfo.CarName} successfully!";
         }

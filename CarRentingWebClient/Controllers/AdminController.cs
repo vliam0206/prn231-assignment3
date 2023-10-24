@@ -10,15 +10,18 @@ namespace CarRentingWebClient.Controllers;
 public class AdminController : Controller
 {
     private readonly ICarInformationAPIs _carAPIs;
-    public AdminController(ICarInformationAPIs carAPIs)
+    private readonly ISession session;
+    public AdminController(ICarInformationAPIs carAPIs, IHttpContextAccessor httpContext)
     {
         _carAPIs = carAPIs;
+        session = httpContext.HttpContext!.Session;
     }
 
     public IActionResult Index()
     {
 
-        ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;        
+        ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
+        ViewData["token"] = session.GetString("token");
         return View();
     }
 

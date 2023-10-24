@@ -1,5 +1,6 @@
 ﻿using BusinessObjects;
 using CarRentingWebClient.AccessAPIs.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -10,11 +11,15 @@ public class SupplierAPIs : ISupplierAPIs
     private readonly HttpClient _client;
     private readonly string _supplierApiUrl = "";
     private JsonSerializerOptions options;
-    public SupplierAPIs()
+    public SupplierAPIs(IHttpContextAccessor httpContext)
     {
         _client = new HttpClient();
         var contentType = new MediaTypeWithQualityHeaderValue("application/json");
         _client.DefaultRequestHeaders.Accept.Add(contentType);
+
+        var token = httpContext.HttpContext!.Session.GetString("token");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
         _supplierApiUrl = "https://localhost:7248/api/Suppliers/";
         options = new JsonSerializerOptions
         {

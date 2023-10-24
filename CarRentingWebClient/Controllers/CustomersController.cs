@@ -16,11 +16,13 @@ public class CustomersController : Controller
 {
     private readonly ICustomerAPIs _customerAPIs;
     private readonly IMapper _mapper;
-
-    public CustomersController(ICustomerAPIs customerAPIs, IMapper mapper)
+    private readonly ISession session;
+    public CustomersController(ICustomerAPIs customerAPIs, IMapper mapper,
+        IHttpContextAccessor httpContext)
     {
         _customerAPIs = customerAPIs;
         _mapper = mapper;
+        session = httpContext.HttpContext!.Session;
     }
 
     [TempData]
@@ -30,6 +32,7 @@ public class CustomersController : Controller
     public IActionResult Index()
     {
         ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
+        ViewData["token"] = session.GetString("token");
         //return View(await _customerAPIs.GetCustomersAsync());
         return View();
     }

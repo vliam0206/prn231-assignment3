@@ -26,7 +26,7 @@ builder.Services.AddAutoMapper(typeof(MappingDTOsProfile));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache(); 
 builder.Services.AddSession(opt => {          
-    opt.Cookie.Name = "rentingcart";
+    opt.Cookie.Name = "rentingcookies";
     opt.IdleTimeout = TimeSpan.FromMinutes(60);
 });
 

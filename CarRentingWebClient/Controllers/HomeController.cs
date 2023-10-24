@@ -15,11 +15,14 @@ public class HomeController : Controller
     private IAuthAPIs _authAPIs;
     private ICustomerAPIs _customerAPIs;
     private IMapper _mapper;
-    public HomeController(IAuthAPIs authAPIs, ICustomerAPIs customerAPIs, IMapper mapper)
+    private readonly ISession session;
+    public HomeController(IAuthAPIs authAPIs, ICustomerAPIs customerAPIs, 
+                            IMapper mapper, IHttpContextAccessor httpContext)
     {
         _authAPIs = authAPIs;
         _customerAPIs = customerAPIs;
         _mapper = mapper;
+        session = httpContext.HttpContext!.Session;
     }
 
     [TempData]
@@ -73,17 +76,24 @@ public class HomeController : Controller
             {
                 await WriteClaimsToCookiesAsync(-1, loginDto.Email, "Admin", 
                                  AppConstants.ADMIN_ROLE, loginModel.IsRemember);
+
+                var loginResponse = await _authAPIs.LoginAsync(loginDto);
+                session.SetString("token", loginResponse.Token);
+
                 return RedirectToAction("Index", "Admin");
             }
             else if (await _authAPIs.CustomerLoginAsync(loginDto))
             {
                 try
                 {
-                    var customer = await _customerAPIs.GetCustomerByEmailAsync(loginDto.Email);
-                    if (customer!.CustomerStatus == 1)
+                    var loginResponse = await _authAPIs.LoginAsync(loginDto);
+                    if (loginResponse.Status == 1)
                     {
-                        await WriteClaimsToCookiesAsync(customer.CustomerId, customer.Email,
-                                    customer.CustomerName!, AppConstants.CUSTOMER_ROLE, loginModel.IsRemember);
+                        await WriteClaimsToCookiesAsync(loginResponse.AccountId, loginResponse.Email,
+                                    loginResponse.Name, AppConstants.CUSTOMER_ROLE, loginModel.IsRemember);
+
+                        session.SetString("token", loginResponse.Token);
+
                         return RedirectToAction("Index", "User");
                     }
                     else
@@ -111,6 +121,7 @@ public class HomeController : Controller
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        session.Remove("token");
         return RedirectToAction("Login");
     }
 
@@ -169,7 +180,7 @@ public class HomeController : Controller
         //SignInAsync is a Extension method for Sign in a principal for the specified scheme.    
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties()
         {
-            IsPersistent = isRemeber
+            IsPersistent = false
         });
     }
 }

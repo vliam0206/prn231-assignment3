@@ -5,6 +5,22 @@
 }
 
 <h1>Transaction History</h1>
+
+<hr />
+@* Search *@
+<div class="row">
+    <form method="get" asp-controller="RentingTransactions" asp-action="Search" class="col-10">
+        <span class="me-3">From date</span>
+        <input class="me-3" value="@ViewBag.startDate" name="startDate" type="date" />
+        <span class="me-3">To date</span>
+        <input class="me-3" value="@ViewBag.endDate" name="endDate" type="date" />
+        <input type="submit" value="Search" class="btn btn-dark btn-outline-light me-4" /> |
+        <a asp-action="TransactionHistory" class="ms-4">Back to full list</a>
+    </form>
+</div>
+<br />
+@* End search *@
+
 <p>
     <a asp-controller="Admin" asp-action="Renting" class="btn btn-secondary">Make New Transaction</a>
 </p>
@@ -12,16 +28,16 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.RentingDate)
+                Renting Date
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Customer)
+                Customer
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TotalPrice)
+                Total Price
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.RentingStatus)
+                Renting Status
             </th>
             <th></th>
         </tr>
@@ -51,3 +67,6 @@
         }
     </tbody>
 </table>
+<div style="display:none">
+    <input id="token" name="token" value="@ViewData["token"]" />
+</div>

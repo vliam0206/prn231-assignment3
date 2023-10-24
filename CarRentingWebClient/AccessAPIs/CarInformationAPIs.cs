@@ -13,11 +13,14 @@ public class CarInformationAPIs : ICarInformationAPIs
     private readonly HttpClient _client;
     private readonly string _carApiUrl = "";
     private JsonSerializerOptions options;
-    public CarInformationAPIs()
+    public CarInformationAPIs(IHttpContextAccessor httpContext)
     {
         _client = new HttpClient();
         var contentType = new MediaTypeWithQualityHeaderValue("application/json");
         _client.DefaultRequestHeaders.Accept.Add(contentType);
+        var token = httpContext.HttpContext!.Session.GetString("token");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
         _carApiUrl = "https://localhost:7248/api/CarInformations/";
         options = new JsonSerializerOptions
         {

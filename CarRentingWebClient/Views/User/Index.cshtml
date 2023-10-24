@@ -10,7 +10,10 @@
        class="btn btn-success col-md-6 p-3 mt-3 btn-outline-light">Renting Car</a>
     <a asp-controller="User" asp-action="TransactionHistory"
        class="btn btn-success col-md-6 p-3 mt-3 btn-outline-light">Transaction History</a>
-    <a asp-controller="Home" asp-action="Logout"
+    <a asp-controller="Home" asp-action="Logout" onclick="RemoveToken()"
        class="btn btn-danger col-md-6 p-3 mt-3 btn-outline-light">Log out</a>
 </div>
 
+<div style="display:none">
+    <input id="token" name="token" value="@ViewData["token"]" />
+</div>

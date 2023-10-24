@@ -17,17 +17,20 @@ public class UserController : Controller
     private readonly IRentingTransactionAPIs _transactionAPIs;
     private readonly IRentingDetailAPIs _detailAPIs;
     private readonly IMapper _mapper;
+    private readonly ISession session;
     public UserController(ICustomerAPIs customerAPIs, 
                                 ICarInformationAPIs carAPIs,
                                 IMapper mapper, 
                                 IRentingTransactionAPIs transactionAPIs, 
-                                IRentingDetailAPIs detailAPIs)
+                                IRentingDetailAPIs detailAPIs,
+                                IHttpContextAccessor httpContext)
     {
         _customerAPIs = customerAPIs;
         _carAPIs = carAPIs;
         _mapper = mapper;
         _transactionAPIs = transactionAPIs;
         _detailAPIs = detailAPIs;
+        session = httpContext.HttpContext!.Session;
     }
 
     [TempData]
@@ -35,7 +38,8 @@ public class UserController : Controller
 
     public IActionResult Index()
     {
-        ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;        
+        ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
+        ViewData["token"] = session.GetString("token");
         return View();
     }
 

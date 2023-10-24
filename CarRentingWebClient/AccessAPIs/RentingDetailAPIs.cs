@@ -1,6 +1,7 @@
 ﻿using BusinessObjects;
 using BusinessObjects.DTOs;
 using CarRentingWebClient.AccessAPIs.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -12,11 +13,15 @@ public class RentingDetailAPIs : IRentingDetailAPIs
     private readonly HttpClient _client;
     private readonly string _rentingDetailApiUrl = "";
     private JsonSerializerOptions options;
-    public RentingDetailAPIs()
+    public RentingDetailAPIs(IHttpContextAccessor httpContext)
     {
         _client = new HttpClient();
         var contentType = new MediaTypeWithQualityHeaderValue("application/json");
         _client.DefaultRequestHeaders.Accept.Add(contentType);
+
+        var token = httpContext.HttpContext!.Session.GetString("token");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
         _rentingDetailApiUrl = "https://localhost:7248/api/RentingDetails/";
         options = new JsonSerializerOptions
         {

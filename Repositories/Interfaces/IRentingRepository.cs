@@ -11,4 +11,5 @@ public interface IRentingRepository
     Task<List<RentingTransaction>> GetRentingTransactionsAsync();    
 
     Task<List<RentingTransaction>> GetRentingTransactionsAsync(int customerId);
+    Task<List<RentingTransaction>> GetRentingTransactionsByDateAsync(DateTime startDate, DateTime endDate);
 }

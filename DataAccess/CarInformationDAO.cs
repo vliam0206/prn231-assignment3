@@ -96,9 +96,11 @@ public class CarInformationDAO : BaseDAO<CarInformation>
                                          .Include(x => x.Car)
                                          .Select(x => x.Car);
 
-                carInformations = await context.CarInformations
+                carInformations = await context.CarInformations                                        
                                         .Except(rentingCars)
                                         .Where(x => x.CarStatus == 1)
+                                        .Include(x => x.Manufacturer)
+                                        .Include(x => x.Supplier)
                                         .ToListAsync();
                 
             }

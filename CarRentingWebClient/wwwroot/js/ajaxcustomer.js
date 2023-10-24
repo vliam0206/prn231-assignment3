@@ -5,10 +5,12 @@
 // load all customers
 function ShowAllCustomers() {
     $("#customer-table tbody").html("");
-
     $.ajax({
         url: "https://localhost:7248/api/Customers",
         type: "get",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") }`
+        },
         contentType: "application/json",
         success: function (result, status, xhr) {
             $.each(result, function (index, value) {
@@ -42,6 +44,9 @@ function SearchCustomer() {
         url: "https://localhost:7248/api/Customers/search/" + $("#searchCustomerValue").val(),
         type: "get",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         success: function (result, status, xhr) {
             $.each(result, function (index, value) {
                 $("#customer-table tbody").append($("<tr>"));
@@ -273,6 +278,9 @@ function DeleteCustomer(id) {
         url: "https://localhost:7248/api/Customers/" + id,
         type: "delete",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         success: function (result, status, xhr) {
             ShowAllCustomers();
             $("#customerCrud").html(``);
@@ -306,6 +314,9 @@ function CreateCustomer() {
         },
         type: "post",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         data: JSON.stringify({
             CustomerName: $("#CustomerName").val(),
             Telephone: $("#Telephone").val(),
@@ -350,6 +361,9 @@ function EditCustomer(id) {
         },
         type: "put",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         data: JSON.stringify({
             CustomerName: $("#CustomerName").val(),
             Telephone: $("#Telephone").val(),

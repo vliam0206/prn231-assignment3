@@ -4,6 +4,8 @@ using BusinessObjects;
 using Repositories.Interfaces;
 using AutoMapper;
 using BusinessObjects.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CarRentingWebApi.Controllers;
 
@@ -13,15 +15,19 @@ public class CustomersController : ControllerBase
 {
     private readonly ICustomerRepository _customerRepository;
     private readonly IMapper _mapper;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CustomersController(ICustomerRepository customerRepository, IMapper mapper)
+    public CustomersController(ICustomerRepository customerRepository, IMapper mapper, 
+        IHttpContextAccessor httpContextAccessor)
     {
         _customerRepository = customerRepository;
         _mapper = mapper;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     // GET: api/Customers
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<Customer>>> GetCustomers()
     {
         return await _customerRepository.GetCustomersAsync();
@@ -29,8 +35,17 @@ public class CustomersController : ControllerBase
 
     // GET: api/Customers/5
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<ActionResult<Customer>> GetCustomer(int id)
     {
+        var userIdClaim = _httpContextAccessor
+                                .HttpContext?
+                                .User?
+                                .FindFirstValue(ClaimTypes.SerialNumber);
+        if (int.Parse(userIdClaim) != -1 && int.Parse(userIdClaim) != id)
+        {
+            return Forbid("You are not allow to access this function.");
+        }
         var customer = await _customerRepository.GetCustomerByIdAsync(id);
 
         if (customer == null)
@@ -43,8 +58,16 @@ public class CustomersController : ControllerBase
 
     // GET: api/get-by-email/{email}
     [HttpGet("get-by-email/{email}")]
+    [Authorize]
     public async Task<ActionResult<Customer>> GetCustomerByEmail(string email)
     {
+        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.SerialNumber);
+        var userEmailClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.Parse(userIdClaim) != -1 && !userEmailClaim.Equals(email))
+        {
+            return Forbid("You are not allow to access this function.");
+        }
+
         var customer = await _customerRepository.GetCustomerAsync(email);
 
         if (customer == null)
@@ -57,8 +80,15 @@ public class CustomersController : ControllerBase
     
     // PUT: api/Customers/5    
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> PutCustomer(int id, CustomerCreateDTO customerModel)
     {
+        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.SerialNumber);
+        if (int.Parse(userIdClaim) != -1 && int.Parse(userIdClaim) != id)
+        {
+            return Forbid("You are not allow to access this function.");
+        }
+
         var cusTemp = await _customerRepository.GetCustomerByIdAsync(id);
         if (cusTemp == null)
         {
@@ -112,6 +142,7 @@ public class CustomersController : ControllerBase
 
     // DELETE: api/Customers/5
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCustomer(int id)
     {
         var customer = await _customerRepository.GetCustomerByIdAsync(id);
@@ -127,6 +158,7 @@ public class CustomersController : ControllerBase
 
     // GET: api/Customers/search/abc
     [HttpGet("search/{keyword}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<Customer>>> SearchCustomers(string keyword)
     {
         return await _customerRepository.SearchCustomersByNameAsync(keyword.Trim());

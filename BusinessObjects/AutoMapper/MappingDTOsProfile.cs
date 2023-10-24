@@ -11,5 +11,7 @@ public class MappingDTOsProfile : Profile
         CreateMap<CarInformation, CarCreateDTO>().ReverseMap();
         CreateMap<RentingTransaction, RentingCreateDTO>().ReverseMap();
         CreateMap<RentingDetail, RentingDetailCreateDTO>().ReverseMap();
+        CreateMap<Customer, Account>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.CustomerId));
     }
 }

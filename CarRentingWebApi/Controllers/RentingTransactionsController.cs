@@ -4,11 +4,13 @@ using BusinessObjects;
 using Repositories.Interfaces;
 using AutoMapper;
 using BusinessObjects.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CarRentingWebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class RentingTransactionsController : ControllerBase
 {
     private readonly IRentingRepository _rentingRepository;
@@ -47,6 +49,7 @@ public class RentingTransactionsController : ControllerBase
 
     // PUT: api/RentingTransactions/5    
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> PutRentingTransaction(int id, RentingCreateDTO rentingModel)
     {
         if ((await _rentingRepository.GetRentingTransactionByIdAsync(id)) == null)
@@ -117,6 +120,7 @@ public class RentingTransactionsController : ControllerBase
 
     // DELETE: api/RentingTransactions/5
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteRentingTransaction(int id)
     {
         var rentingTransaction = await _rentingRepository.GetRentingTransactionByIdAsync(id);

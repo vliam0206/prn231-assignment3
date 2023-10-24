@@ -17,28 +17,37 @@ public class RentingTransactionsController : Controller
     private readonly IRentingDetailAPIs _detailAPIs;
     private readonly ICustomerAPIs _customerAPIs;
     private readonly IMapper _mapper;
+    private readonly ISession session;
 
     public RentingTransactionsController(IRentingTransactionAPIs transactionAPIs, 
                                                 IRentingDetailAPIs detailAPIs,
                                                 ICustomerAPIs customerAPIs,
-                                                IMapper mapper)
+                                                IMapper mapper,
+                                                IHttpContextAccessor httpContext)
     {
         _transactionAPIs = transactionAPIs;
         _detailAPIs = detailAPIs;
         _customerAPIs = customerAPIs;
         _mapper = mapper;
+        session = httpContext.HttpContext!.Session;
     }
 
     [TempData]
     public string? Message { get; set; }
+    [TempData]
+    public DateTime? StartDate { get; set; }
+    [TempData]
+    public DateTime? EndDate { get; set; }
 
     // GET: Admin/RentingTransactions
     [ActionName("TransactionHistory")]
     public async Task<IActionResult> Index()
     {
         ViewData["username"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault()!.Value;
-        ViewData["userid"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()!.Value;        
+        ViewData["userid"] = HttpContext.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()!.Value;
+        ViewData["token"] = session.GetString("token");
         return View("TransactionList", await _transactionAPIs.GetRentingTransactionsAsync());
+        //return View("TransactionList");
     }
 
     // GET: Admin/RentingTransactions/TransactionDetails?transactionId=5
@@ -145,5 +154,28 @@ public class RentingTransactionsController : Controller
             }
         }
         return RedirectToAction("TransactionHistory");
-    }    
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Search(DateTime startDate, DateTime endDate)
+    {
+        ViewData["username"] = HttpContext.User.Claims
+            .Where(x => x.Type == ClaimTypes.Name)
+            .FirstOrDefault()!.Value;
+
+        var carRentalList = new List<RentingTransaction>();
+        if (startDate != DateTime.MinValue && endDate != DateTime.MinValue)
+        {
+            carRentalList = (await _transactionAPIs.GetRentingTransactionsAsync())
+                    .Where(x => x.RentingDate >= startDate && x.RentingDate <= endDate)
+                    .OrderByDescending(x => x.RentingDate)
+                    .ToList(); ;
+            StartDate = startDate;
+            EndDate = endDate;
+            ViewData["startDate"] = StartDate;
+            ViewData["endDate"] = EndDate;
+        }
+
+        return View("TransactionList", carRentalList);
+    }
 }

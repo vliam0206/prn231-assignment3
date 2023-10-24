@@ -1,5 +1,5 @@
 ﻿$(() => {
-    ShowAllTransactions();
+    //ShowAllTransactions();
 });
 
 // load all transactions
@@ -12,6 +12,9 @@ function ShowAllTransactions() {
         url: "https://localhost:7248/api/RentingTransactions",
         type: "get",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         success: function (result, status, xhr) {
             $.each(result, function (index, value) {
                 $("#transaction-table tbody").append($("<tr>"));

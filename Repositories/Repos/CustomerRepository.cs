@@ -57,6 +57,11 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task<List<Customer>> SearchCustomersByNameAsync(string key)
         => await CustomerDAO.FindCustomersByNameAsync(key);
+
+    public async Task<Customer?> GetCustomerByEmailAsync(string email)
+    {
+        return await CustomerDAO.FindCustomerByEmailAsync(email);
+    }
 }
 
 public class Account

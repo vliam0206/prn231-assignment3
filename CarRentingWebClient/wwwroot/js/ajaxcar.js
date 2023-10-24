@@ -10,6 +10,9 @@ function ShowAllCars() {
         url: "https://localhost:7248/api/CarInformations",
         type: "get",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         success: function (result, status, xhr) {
             $.each(result, function (index, value) {
                 $("#car-table tbody").append($("<tr>"));
@@ -46,6 +49,9 @@ function SearchCar() {
         url: "https://localhost:7248/api/CarInformations/search/" + $("#searchCarValue").val(),
         type: "get",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         success: function (result, status, xhr) {
             $.each(result, function (index, value) {
                 $("#car-table tbody").append($("<tr>"));
@@ -402,6 +408,9 @@ function DeleteCar(id) {
         url: "https://localhost:7248/api/CarInformations/" + id,
         type: "delete",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         success: function (result, status, xhr) {
             ShowAllCars();
             $("#carCrud").html(``);
@@ -421,6 +430,9 @@ function CreateCar() {
         },
         type: "post",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         data: JSON.stringify({
             CarName: $("#CarName").val(),
             CarDescription: $("#CarDescription").val(),
@@ -469,6 +481,9 @@ function EditCar(id) {
         },
         type: "put",
         contentType: "application/json",
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
         data: JSON.stringify({
             CarName: $("#CarName").val(),
             CarDescription: $("#CarDescription").val(),
