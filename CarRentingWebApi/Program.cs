@@ -1,4 +1,5 @@
 using BusinessObjects.AutoMapper;
+using CarRentingWebApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Repositories.Interfaces;
@@ -22,6 +23,8 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICarRepository, CarRepository>();
 builder.Services.AddScoped<IRentingRepository, RentingRepository>();
 builder.Services.AddScoped<IRentingDetailRepository, RentingDetailRepository>();
+
+builder.Services.AddSingleton<MyTokenHandler>();
 
 // add cache
 builder.Services.AddDistributedMemoryCache();

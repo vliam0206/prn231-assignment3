@@ -2,6 +2,9 @@
 using BusinessObjects;
 using Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CarRentingWebApi.Controllers;
 
@@ -11,16 +14,30 @@ namespace CarRentingWebApi.Controllers;
 public class ManufacturersController : ControllerBase
 {
     private readonly ICarRepository _carRepository;
+    private readonly IDistributedCache _cache;
+    private readonly MyTokenHandler _tokenHandler;
 
-    public ManufacturersController(ICarRepository carRepository)
+    public ManufacturersController(ICarRepository carRepository,
+        IDistributedCache cache, MyTokenHandler tokenHandler)
     {
         _carRepository = carRepository;
+        _cache = cache;
+        _tokenHandler = tokenHandler;
     }
 
     // GET: api/Manufacturers
     [HttpGet]
     public async Task<ActionResult<List<Manufacturer>>> GetManufacturers()
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _carRepository.GetManufacturersAsync();
     }
 }

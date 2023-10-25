@@ -4,8 +4,11 @@ using BusinessObjects.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.IdentityModel.Tokens;
 using Repositories.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace CarRentingWebApi.Controllers;
 
@@ -18,22 +21,37 @@ public class RentingDetailsController : ControllerBase
     private readonly IRentingRepository _rentingRepository;
     private readonly ICarRepository _carRepository;
     private readonly IMapper _mapper;
+    private readonly IDistributedCache _cache;
+    private readonly MyTokenHandler _tokenHandler;
 
     public RentingDetailsController(IRentingDetailRepository rentingDetailRepository,
                                             IRentingRepository rentingRepository,
                                             ICarRepository carRepository,
-                                            IMapper mapper)
+                                            IMapper mapper,
+                                            IDistributedCache cache,
+                                            MyTokenHandler tokenHandler)
     {
         _rentingDetailRepository = rentingDetailRepository;
         _rentingRepository = rentingRepository;
         _carRepository = carRepository;
         _mapper = mapper;
+        _cache = cache;
+        _tokenHandler = tokenHandler;
     }
 
     // GET: api/RentingDetails
     [HttpGet]
     public async Task<ActionResult<List<RentingDetail>>> GetRentingDetails()
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _rentingDetailRepository.GetRentingDetailsAsync();
     }
 
@@ -41,6 +59,15 @@ public class RentingDetailsController : ControllerBase
     [HttpGet("{transactionId}")]
     public async Task<ActionResult<List<RentingDetail>>> GetRentingDetailsByTransaction(int transactionId)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _rentingDetailRepository.GetRentingDetailByTransactionAsync(transactionId);
     }
 
@@ -48,6 +75,15 @@ public class RentingDetailsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RentingDetail>> PostRentingDetail(List<RentingDetailCreateDTO> rentingModels)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         string message = "";
         foreach(var model in rentingModels)
         {

@@ -6,6 +6,8 @@ using AutoMapper;
 using BusinessObjects.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Caching.Distributed;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CarRentingWebApi.Controllers;
 
@@ -16,13 +18,18 @@ public class CustomersController : ControllerBase
     private readonly ICustomerRepository _customerRepository;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IDistributedCache _cache;
+    private readonly MyTokenHandler _tokenHandler;
 
     public CustomersController(ICustomerRepository customerRepository, IMapper mapper, 
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IDistributedCache cache, MyTokenHandler tokenHandler)
     {
         _customerRepository = customerRepository;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
+        _cache = cache;
+        _tokenHandler = tokenHandler;
     }
 
     // GET: api/Customers
@@ -30,6 +37,15 @@ public class CustomersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<Customer>>> GetCustomers()
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _customerRepository.GetCustomersAsync();
     }
 
@@ -38,10 +54,15 @@ public class CustomersController : ControllerBase
     [Authorize]
     public async Task<ActionResult<Customer>> GetCustomer(int id)
     {
-        var userIdClaim = _httpContextAccessor
-                                .HttpContext?
-                                .User?
-                                .FindFirstValue(ClaimTypes.SerialNumber);
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         if (int.Parse(userIdClaim) != -1 && int.Parse(userIdClaim) != id)
         {
             return Forbid("You are not allow to access this function.");
@@ -61,7 +82,15 @@ public class CustomersController : ControllerBase
     [Authorize]
     public async Task<ActionResult<Customer>> GetCustomerByEmail(string email)
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.SerialNumber);
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+        
         var userEmailClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         if (int.Parse(userIdClaim) != -1 && !userEmailClaim.Equals(email))
         {
@@ -83,7 +112,15 @@ public class CustomersController : ControllerBase
     [Authorize]
     public async Task<IActionResult> PutCustomer(int id, CustomerCreateDTO customerModel)
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.SerialNumber);
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+        
         if (int.Parse(userIdClaim) != -1 && int.Parse(userIdClaim) != id)
         {
             return Forbid("You are not allow to access this function.");
@@ -124,6 +161,15 @@ public class CustomersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Customer>> PostCustomer(CustomerCreateDTO customerModel)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         if ((await _customerRepository.GetCustomerAsync(customerModel.Email)) != null)
         {
             return BadRequest("Email is duplicated!");
@@ -145,6 +191,15 @@ public class CustomersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCustomer(int id)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         var customer = await _customerRepository.GetCustomerByIdAsync(id);
         if (customer == null)
         {
@@ -161,6 +216,15 @@ public class CustomersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<Customer>>> SearchCustomers(string keyword)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _customerRepository.SearchCustomersByNameAsync(keyword.Trim());
     }
 }

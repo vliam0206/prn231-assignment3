@@ -6,6 +6,9 @@ using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 using BusinessObjects.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CarRentingWebApi.Controllers;
 
@@ -16,17 +19,31 @@ public class CarInformationsController : ControllerBase
 {
     private readonly ICarRepository _carRepository;
     private readonly IMapper _mapper;
+    private readonly IDistributedCache _cache;
+    private readonly MyTokenHandler _tokenHandler;
 
-    public CarInformationsController(ICarRepository carRepository, IMapper mapper)
+    public CarInformationsController(ICarRepository carRepository, IMapper mapper,
+        IDistributedCache cache, MyTokenHandler tokenHandler)
     {
         _carRepository = carRepository;
         _mapper = mapper;
+        _cache = cache;
+        _tokenHandler = tokenHandler;
     }
 
     // GET: api/CarInformations
     [HttpGet]
     public async Task<ActionResult<List<CarInformation>>> GetCarInformations()
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _carRepository.GetCarInformationsAsync();
     }
 
@@ -34,6 +51,15 @@ public class CarInformationsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<CarInformation>> GetCarInformation(int id)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         var carInformation = await _carRepository.GetCarByIdAsync(id);
 
         if (carInformation == null)
@@ -49,6 +75,15 @@ public class CarInformationsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> PutCarInformation(int id, CarCreateDTO carModel)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         if ((await _carRepository.GetCarByIdAsync(id)) == null)
         {
             return NotFound();
@@ -85,6 +120,15 @@ public class CarInformationsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CarInformation>> PostCarInformation(CarCreateDTO carModel)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         string message = await CheckValidateCarModelAsync(carModel);
         if (!message.IsNullOrEmpty())
         {
@@ -116,6 +160,15 @@ public class CarInformationsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCarInformation(int id)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         var carInformation = await _carRepository.GetCarByIdAsync(id);
         if (carInformation == null)
         {
@@ -136,6 +189,15 @@ public class CarInformationsController : ControllerBase
     [HttpPost("available")]
     public async Task<ActionResult<List<CarInformation>>> GetAvailableCarInformations(RentingDateDTO dateDto)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _carRepository.GetAvailableCarsAsync(dateDto.StartDate, dateDto.EndDate);
     }
 
@@ -143,6 +205,15 @@ public class CarInformationsController : ControllerBase
     [HttpGet("valid")]
     public async Task<ActionResult<List<CarInformation>>> GetValidCarInformations()
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return (await _carRepository.GetCarInformationsAsync())
             .Where(x => x.CarStatus ==1)
             .ToList();
@@ -152,6 +223,16 @@ public class CarInformationsController : ControllerBase
     [HttpGet("search/{keyword}")]
     public async Task<ActionResult<List<CarInformation>>> SearchCarInformations(string keyword)
     {
+        var currentTokenId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.SerialNumber)?.Value;
+        var userId = int.Parse(userIdClaim!); // Get the user's ID;
+
+        if (_tokenHandler.IsTokenRevoked(userId, currentTokenId!, _cache))
+        {
+            return Unauthorized("Token is revoked or invalid.");
+        }
+
         return await _carRepository.SearchCarsByNameAsync(keyword.Trim());
     }
+
 }
